@@ -1,9 +1,11 @@
 package showandtell
 
 import (
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gobuffalo/packr/v2"
 )
@@ -16,6 +18,47 @@ var (
 
 	revealBoxes = []*packr.Box{cssBox, libBox, jsBox, pluginBox}
 )
+
+func dirExists(dirPath string) bool {
+	if _, err := os.Stat(dirPath); err != nil && os.IsNotExist(err) {
+		return false
+	} else if err != nil && os.IsExist(err) {
+		return true
+	}
+	return true
+}
+
+func AddCustomFiles(baseDir string) error {
+	if !dirExists(baseDir) {
+		return nil
+	}
+
+	for _, b := range revealBoxes {
+		dirPath := filepath.Join(baseDir, b.Name)
+		if !dirExists(dirPath) {
+			continue
+		}
+
+		err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+			if !info.IsDir() {
+				relPath := strings.TrimPrefix(path, dirPath)
+				fileBytes, err := ioutil.ReadFile(dirPath)
+				if err != nil {
+					return err
+				}
+				if err := b.AddBytes(relPath, fileBytes); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func ServeRevealJS() *http.ServeMux {
 	mux := &http.ServeMux{}

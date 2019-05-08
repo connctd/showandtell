@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	slideFolder string
-
+	slideFolder      string
 	presentationPath string
-	presentation     *showandtell.Presentation
+	customFileDir    string
+
+	presentation *showandtell.Presentation
 )
 
 func main() {
@@ -36,10 +37,23 @@ func main() {
 			Usage:       "Specify an alternative location for presentation yaml",
 			Destination: &presentationPath,
 		},
+
+		cli.StringFlag{
+			Name:        "customFiles",
+			Value:       "./",
+			Usage:       "Specify an alternative directory with additional js, css etc. files",
+			Destination: &customFileDir,
+		},
 	}
 	app.Before = func(ctx *cli.Context) (err error) {
 		presentation, err = showandtell.ParsePresentation(presentationPath)
-		return err
+		if err != nil {
+			return err
+		}
+		if err := showandtell.AddCustomFiles(customFileDir); err != nil {
+			return err
+		}
+		return nil
 	}
 
 	if err := app.Run(os.Args); err != nil {
