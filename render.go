@@ -67,7 +67,11 @@ var subSlideTmpl = `
 
 var slideTmpl = `
 [[ define "slide" ]]
-<section id="[[ .SectionID ]]" data-has-notes="[[ .HasNotes ]]" class="slide">
+<section 
+	class="slide"
+	id="[[ .SectionID ]]" 
+	data-has-notes="[[ .HasNotes ]]" 
+	[[ if .Transition ]]data-transition="[[.Transition]] [[if .TransitionSpeed]]data-transition-speed="[[.TransitionSpeed]]" [[end]][[end]]>
 [[ .Content ]]
 [[ if .HasNotes ]]
 <aside class="notes">
@@ -171,8 +175,11 @@ type Slide struct {
 	Content    template.HTML
 	SourceFile string
 	SubSlides  []*Slide
-	Notes      template.HTML `yaml:"notes"`
 	SectionID  string
+
+	Notes           template.HTML `yaml:"notes"`
+	Transition      *string       `yaml:"transition"`
+	TransitionSpeed *string       `yaml:"transitionSpeed"`
 }
 
 func (s *Slide) HasNotes() bool {
