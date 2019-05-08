@@ -13,7 +13,7 @@ import (
 var httpAddr string
 
 var serveCommand = cli.Command{
-	Name:        "server",
+	Name:        "serve",
 	Aliases:     []string{"s"},
 	Description: "Serve the presentation on a webserver",
 	Usage:       "serve [--addr :8080]",
