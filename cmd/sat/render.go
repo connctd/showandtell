@@ -29,7 +29,7 @@ var renderCommand = cli.Command{
 		}
 		defer indexFile.Close()
 
-		indexBytes, err := showandtell.RenderIndex(&showandtell.Presentation{}, slideFolder)
+		indexBytes, err := showandtell.RenderIndex(presentation, slideFolder)
 		if err != nil {
 			return err
 		}

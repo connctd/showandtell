@@ -2,6 +2,7 @@ package showandtell
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -36,7 +37,7 @@ var baseTmpl = `
 		[[ block "js" . ]]
 		<script src="js/reveal.js"></script>
 		<script>
-			Reveal.initialize();
+			Reveal.initialize([[.RevealConfig.ToJSON]]);
 		</script>
 		[[ end ]]
 	</body>
@@ -83,6 +84,89 @@ func RegisterSlideFormat(ext string, parser SlideParser) {
 	slideParsers[ext] = parser
 }
 
+type RevealDependency struct {
+	RelSrc string `json:"src"`
+	Async  bool   `json:"async"`
+}
+
+type RevealConfiguration struct {
+	Controls         *bool `json:"controls,omitempty"`
+	ControlsTutorial *bool `json:"controlsTutorial,omitempty"`
+	// Determines where controls appear, "edges" or "bottom-right"
+	ControlsLayout *string `json:"controlsLayout,omitempty"`
+	// Visibility rule for backwards navigation arrows; "faded", "hidden"
+	// or "visible"
+	ControlsBackArrows *string `json:"controlsBackArrows,omitempty"`
+	Progress           *bool   `json:"progress,omitempty"`
+	SlideNumber        *bool   `json:"slideNumber,omitempty"`
+	Hash               *bool   `json:"hash,omitempty"`
+	History            *bool   `json:"history,omitempty"`
+	Keyboard           *bool   `json:"keyboard,omitempty"`
+	Overview           *bool   `json:"overview,omitempty"`
+	Center             *bool   `json:"center,omitempty"`
+	Touch              *bool   `json:"touch,omitempty"`
+	Loop               *bool   `json:"loop,omitempty"`
+	Rtl                *bool   `json:"rtl,omitempty"`
+	// See https://github.com/hakimel/reveal.js/#navigation-mode
+	NavigdationMode    *string `json:"navigationMode,omitempty"`
+	Shuffle            *bool   `json:"shuffle,omitempty"`
+	Fragments          *bool   `json:"fragments,omitempty"`
+	FragmentInURL      *bool   `json:"fragmentInURL,omitempty"`
+	Embedded           *bool   `json:"embedded,omitempty"`
+	Help               *bool   `json:"help,omitempty"`
+	ShowNotes          *bool   `json:"showNotes,omitempty"`
+	AutoPlayMedia      *bool   `json:"autoPlayMedia"`
+	PreloadIFrames     *bool   `json:"preloadIframes"`
+	AutoSlide          *uint64 `json:"autoSlide,omitempty"`
+	AutoSlideStoppable *bool   `json:"autoSlideStoppable,omitempty"`
+	DefaultTiming      *uint64 `json:"defaultTiming,omitempty"`
+	MouseWheel         *bool   `json:"mouseWheel,omitempty"`
+	HideInactiveCursor *bool   `json:"hideInactiveCursor,omitempty"`
+	HideCursorTime     *uint64 `json:"hideCursorTime,omitempty"`
+	HideAddressBar     *bool   `json:"hideAddressBar,omitempty"`
+	PreviewLinks       *bool   `json:"previewLinks,omitempty"`
+	// none/fade/slide/convex/concave/zoom
+	Transition *string `json:"transition,omitempty"`
+	// default/fast/slow
+	TransitionSpeed         *string `json:"transitionSpeed,omitempty"`
+	BackgroundTransition    *string `json:"backgroundTransition,omitempty"` // none/fade/slide/convex/concave/zoom
+	ViewDistance            *uint64 `json:"viewDistance,omitempty"`
+	ParallaxBackgroundImage *string `json:"parallaxBackgroundImage,omitempty"`
+	ParallaxBackgroundSize  *string `json:"parallaxBackgroundSize,omitempty"`
+	// TODO parallaxBackgroundHorizontal: null, parallaxBackgroundVertical: null,
+	Display      *string             `json:"display,omitempty"`
+	Dependencies []*RevealDependency `json:"dependencies"`
+}
+
+func (r *RevealConfiguration) ToJSON() template.JS {
+	s, _ := json.Marshal(r)
+	return template.JS(s)
+}
+
+func DefaultRevealConfig() *RevealConfiguration {
+	return &RevealConfiguration{
+		Controls: Bool(true),
+		Progress: Bool(true),
+		History:  Bool(true),
+		Center:   Bool(true),
+
+		Dependencies: []*RevealDependency{
+			{
+				RelSrc: "plugin/notes/notes.js",
+				Async:  true,
+			},
+			{
+				RelSrc: "plugin/zoom-js/zoom.js",
+				Async:  true,
+			},
+		},
+	}
+}
+
+func Bool(in bool) *bool {
+	return &in
+}
+
 type Slide struct {
 	Content    template.HTML
 	SourceFile string
@@ -101,9 +185,10 @@ type SlideContext struct {
 }
 
 type Presentation struct {
-	Name        string
-	Description string
-	Slides      []*Slide
+	Name         string               `yaml:"name"`
+	Description  string               `yaml:"description"`
+	Slides       []*Slide             `json:"-"`
+	RevealConfig *RevealConfiguration `yaml:"reveal_config"`
 }
 
 type SlideParser interface {
@@ -262,4 +347,21 @@ func RenderIndex(pres *Presentation, slideFolder string) ([]byte, error) {
 	buf := &bytes.Buffer{}
 	err = tmpl.ExecuteTemplate(buf, "main", pres)
 	return buf.Bytes(), err
+}
+
+func ParsePresentation(presPath string) (*Presentation, error) {
+	buf, err := ioutil.ReadFile(presPath)
+	if err != nil {
+		return nil, err
+	}
+	pres := &Presentation{}
+	err = yaml.Unmarshal(buf, pres)
+	if err != nil {
+		return nil, err
+	}
+	if pres.RevealConfig == nil {
+		// TODO use a nice and sane default configuration
+		pres.RevealConfig = DefaultRevealConfig()
+	}
+	return pres, nil
 }

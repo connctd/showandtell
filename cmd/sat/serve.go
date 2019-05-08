@@ -28,11 +28,10 @@ var serveCommand = cli.Command{
 	Action: func(ctx *cli.Context) (err error) {
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-		pres := &showandtell.Presentation{}
 
 		go func() {
 			var server *http.Server
-			server, err = showandtell.ServePresentation(pres, slideFolder, httpAddr)
+			server, err = showandtell.ServePresentation(presentation, slideFolder, httpAddr)
 			if err != nil {
 				return
 			}
