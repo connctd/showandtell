@@ -163,6 +163,10 @@ func DefaultRevealConfig() *RevealConfiguration {
 				RelSrc: "plugin/zoom-js/zoom.js",
 				Async:  true,
 			},
+			{
+				RelSrc: "plugin/highlight/highlight.js",
+				Async:  true,
+			},
 		},
 	}
 }
