@@ -71,7 +71,7 @@ var slideTmpl = `
 	class="slide"
 	id="[[ .SectionID ]]" 
 	data-has-notes="[[ .HasNotes ]]" 
-	[[ if .Transition ]]data-transition="[[.Transition]] [[if .TransitionSpeed]]data-transition-speed="[[.TransitionSpeed]]" [[end]][[end]]>
+	[[ if .Transition ]]data-transition="[[.Transition]]" [[if .TransitionSpeed]]data-transition-speed="[[.TransitionSpeed]]" [[end]][[end]]>
 [[ .Content ]]
 [[ if .HasNotes ]]
 <aside class="notes">
