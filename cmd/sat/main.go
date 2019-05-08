@@ -18,7 +18,7 @@ func main() {
 	app.Version = showandtell.Version
 	app.Description = "Render and serve reveal.js based presentations"
 	app.EnableBashCompletion = true
-	app.Commands = []cli.Command{renderCommand}
+	app.Commands = []cli.Command{renderCommand, serveCommand}
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "slides",

@@ -1,6 +1,8 @@
 package showandtell
 
 import (
+	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -15,6 +17,17 @@ var (
 
 	revealBoxes = []*packr.Box{cssBox, libBox, jsBox, pluginBox}
 )
+
+func ServeRevealJS() *http.ServeMux {
+	mux := &http.ServeMux{}
+
+	for _, b := range revealBoxes {
+		path := "/" + b.Name + "/"
+		fmt.Printf("Adding handler for path %s serving revealjs files\n", path)
+		mux.Handle(path, http.StripPrefix(path, http.FileServer(b)))
+	}
+	return mux
+}
 
 func EmitRevealJS(destDir string) error {
 	for _, b := range revealBoxes {
