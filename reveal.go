@@ -1,6 +1,7 @@
 package showandtell
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -42,7 +43,9 @@ func AddCustomFiles(baseDir string) error {
 		err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 			if !info.IsDir() {
 				relPath := strings.TrimPrefix(path, dirPath)
-				fileBytes, err := ioutil.ReadFile(dirPath)
+				relPath = strings.TrimPrefix(relPath, "/")
+				fmt.Printf("Adding custom file %s to %s\n", relPath, b.Name)
+				fileBytes, err := ioutil.ReadFile(path)
 				if err != nil {
 					return err
 				}
