@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -35,7 +36,7 @@ var serveCommand = cli.Command{
 			if err != nil {
 				return
 			}
-
+			fmt.Printf("Serving presentation on %s\n", server.Addr)
 			err = server.ListenAndServe()
 		}()
 
