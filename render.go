@@ -212,10 +212,13 @@ func DefaultRenderer() *template.Template {
 
 func parseFrontMatter(in []byte) (fm []byte, content []byte) {
 	if !bytes.HasPrefix(in, frontMatterDelimiter) {
-		return nil, in
+		return []byte{}, in
 	}
 
 	parts := bytes.SplitN(in, frontMatterDelimiter, 3)
+	if len(parts) < 3 {
+		return parts[1], []byte{}
+	}
 
 	return parts[1], parts[2]
 }
