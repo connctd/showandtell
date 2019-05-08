@@ -9,7 +9,9 @@ REVEAL_JS_URL						= https://github.com/hakimel/reveal.js/archive/$(REVEAL_JS_VE
 GO_BUILD								= $(GO_ENV) go build -ldflags "$(LDFLAGS)"
 GO_TEST									= $(GO_ENV) go test -v
 
-.PHONY: clean dist-clean test dist
+.PHONY: clean dist-clean test dist build
+
+build: dist/sat
 
 dist/sat: dist_temp/reveal
 	@mkdir -p ./dist
