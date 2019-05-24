@@ -16,8 +16,9 @@ var (
 	libBox    = packr.New("lib", "./dist_temp/reveal/lib")
 	jsBox     = packr.New("js", "./dist_temp/reveal/js")
 	pluginBox = packr.New("plugin", "./dist_temp/reveal/plugin")
+	imagesBox = packr.New("images", "./dist_temp/reveal/img")
 
-	revealBoxes = []*packr.Box{cssBox, libBox, jsBox, pluginBox}
+	revealBoxes = []*packr.Box{cssBox, libBox, jsBox, pluginBox, imagesBox}
 )
 
 func dirExists(dirPath string) bool {
