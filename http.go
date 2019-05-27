@@ -8,20 +8,11 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
 )
 
 var (
 	writeWait = 10 * time.Second
 )
-
-type indexHandler struct {
-	indexBytes []byte
-}
-
-func (i *indexHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write(i.indexBytes)
-}
 
 type PresentationServer struct {
 	slideDir        string
@@ -121,41 +112,4 @@ func (p *PresentationServer) Run() {
 	go func() {
 		p.httpServer.ListenAndServe()
 	}()
-}
-
-func ServePresentation(ctx context.Context, pres *Presentation, slideDir, addr string, rerenderChan chan bool) (*http.Server, error) {
-	server := &http.Server{
-		Addr: addr,
-	}
-
-	indexBytes, err := RenderIndex(pres, slideDir)
-	if err != nil {
-		return nil, err
-	}
-	index := &indexHandler{indexBytes}
-
-	mux := ServeRevealJS()
-	mux.Handle("/", index)
-
-	server.Handler = mux
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case val := <-rerenderChan:
-				if val {
-					indexBytes, err := RenderIndex(pres, slideDir)
-					if err != nil {
-						logrus.WithError(err).Error("Failed to rerender the presentation for live reload")
-						continue
-					}
-					index.indexBytes = indexBytes
-				}
-			}
-		}
-	}()
-
-	return server, nil
 }
