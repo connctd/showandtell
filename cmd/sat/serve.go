@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/connctd/showandtell"
+	"github.com/fsnotify/fsnotify"
 	"github.com/urfave/cli"
 )
 
@@ -27,22 +28,57 @@ var serveCommand = cli.Command{
 		},
 	},
 	Action: func(ctx *cli.Context) (err error) {
+		cctx := context.Background()
 		c := make(chan os.Signal)
 		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
+			return err
+		}
+		if err := watcher.Add(slideFolder); err != nil {
+			return err
+		}
+
+		var server *showandtell.PresentationServer
+
+		server, err = showandtell.NewPresentationServer(cctx, presentation, slideFolder, httpAddr)
+		if err != nil {
+			return
+		}
+		fmt.Printf("Serving presentation on %s\n", httpAddr)
+		server.Run()
+
 		go func() {
-			var server *http.Server
-			server, err = showandtell.ServePresentation(presentation, slideFolder, httpAddr)
-			if err != nil {
-				return
+			for {
+				select {
+				case <-cctx.Done():
+					return
+				case evt := <-watcher.Events:
+
+					switch evt.Op {
+					case fsnotify.Write:
+						fmt.Printf("File %s changed, rerendering...\n", evt.Name)
+						server.Rerender()
+					case fsnotify.Create:
+						fmt.Printf("File %s created, rerendering...\n", evt.Name)
+						server.Rerender()
+					case fsnotify.Remove:
+						fmt.Printf("File %s deleted, rerendering...\n", evt.Name)
+						server.Rerender()
+					case fsnotify.Rename:
+						fmt.Printf("File %s renamed, rerendering...\n", evt.Name)
+						server.Rerender()
+					default:
+						continue
+					}
+				}
 			}
-			fmt.Printf("Serving presentation on %s\n", server.Addr)
-			err = server.ListenAndServe()
 		}()
 
 		select {
 		case <-c:
-
+			server.Close()
 		}
 		return
 	},
