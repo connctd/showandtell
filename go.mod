@@ -3,10 +3,12 @@ module github.com/connctd/showandtell
 go 1.12
 
 require (
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gobuffalo/depgen v0.1.1 // indirect
 	github.com/gobuffalo/genny v0.1.1 // indirect
 	github.com/gobuffalo/gogen v0.1.1 // indirect
 	github.com/gobuffalo/packr/v2 v2.2.0
+	github.com/gorilla/websocket v1.4.0
 	github.com/karrick/godirwalk v1.9.1 // indirect
 	github.com/kr/pty v1.1.4 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
