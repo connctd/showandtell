@@ -13,6 +13,9 @@ GO_TEST									= $(GO_ENV) go test -v
 
 build: dist/sat
 
+install: build
+	@cp dist/sat $(GOPATH)/bin
+	
 dist/sat: dist_temp/reveal
 	@mkdir -p ./dist
 	packr2
