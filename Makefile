@@ -14,15 +14,18 @@ GO_TEST									= $(GO_ENV) go test -v
 build: dist/sat
 
 install: build
+	@echo Installing showandtell
 	@cp dist/sat $(GOPATH)/bin
 	
 dist/sat: dist_temp/reveal
+	@echo "Building showandtell
 	@mkdir -p ./dist
 	packr2
 	$(GO_BUILD) -o ./dist/sat ./cmd/sat
 	packr2 clean
 
 dist_temp/reveal:
+	@echo Downloading reveal JS
 	@mkdir -p ./dist_temp
 	@wget -o /dev/null -O ./dist_temp/reveal.tar.gz $(REVEAL_JS_URL)
 	@cd ./dist_temp/ && tar xzf reveal.tar.gz
@@ -34,11 +37,11 @@ test:
 	@echo Running tests
 	$(GO_TEST) ./...
 
-clean: dist-clean
+clean:
 	@packr2 clean
 	@rm -rf ./dist
 	@rm -rf ./test_out
 
-dist-clean:
+dist-clean: clean
 	@rm -rf ./dist_temp
 	
