@@ -18,7 +18,7 @@ install: build
 	@cp dist/sat $(GOPATH)/bin
 	
 dist/sat: dist_temp/reveal
-	@echo "Building showandtell
+	@echo "Building showandtell"
 	@mkdir -p ./dist
 	packr2
 	$(GO_BUILD) -o ./dist/sat ./cmd/sat
