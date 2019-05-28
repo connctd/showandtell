@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var showOutput = false
+
 func TestRenderSlides(t *testing.T) {
 	pres := &Presentation{
 		Name: "foo",
@@ -15,7 +17,9 @@ func TestRenderSlides(t *testing.T) {
 
 	out, err := RenderIndex(pres, "./test_slides")
 	require.NoError(t, err)
-	fmt.Printf("Output:\n%s\n", string(out))
+	if showOutput {
+		fmt.Printf("Output:\n%s\n", string(out))
+	}
 }
 
 func TestParseFrontMatter(t *testing.T) {
