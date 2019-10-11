@@ -15,6 +15,10 @@ import (
 
 var Version = "undefined"
 
+var (
+	DefaultTheme = "white"
+)
+
 var frontMatterDelimiter = []byte(`+++`)
 
 var mainTmpl = `[[define "main" ]] [[ template "base" . ]] [[ end ]]`
@@ -24,7 +28,9 @@ var baseTmpl = `
 <html>
 	<head>
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/white.css">
+		[[ range .Theme ]]
+		<link rel="stylesheet" href="css/theme/[[.]].css">
+		[[ end ]]
 	</head>
 	<body>
 		<div class="reveal">
@@ -232,6 +238,7 @@ type SlideContext struct {
 
 type Presentation struct {
 	Name         string               `yaml:"name"`
+	Theme        []string             `yaml:"theme"`
 	Description  string               `yaml:"description"`
 	Slides       []*Slide             `json:"-"`
 	RevealConfig *RevealConfiguration `yaml:"reveal_config"`
@@ -411,6 +418,9 @@ func ParsePresentation(presPath string) (*Presentation, error) {
 	if pres.RevealConfig == nil {
 		// TODO use a nice and sane default configuration
 		pres.RevealConfig = DefaultRevealConfig()
+	}
+	if len(pres.Theme) == 0 {
+		pres.Theme = []string{"white"}
 	}
 	return pres, nil
 }
