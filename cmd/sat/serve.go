@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/connctd/showandtell"
@@ -39,6 +41,18 @@ var serveCommand = cli.Command{
 		if err := watcher.Add(slideFolder); err != nil {
 			return err
 		}
+		subFiles, err := ioutil.ReadDir(slideFolder)
+		if err != nil {
+			return err
+		}
+		for _, fi := range subFiles {
+			// Add subfolder to watcher, because the watcher is not recursive
+			if fi.IsDir() {
+				if err := watcher.Add(filepath.Join(slideFolder, fi.Name())); err != nil {
+					return err
+				}
+			}
+		}
 
 		var server *showandtell.PresentationServer
 
@@ -62,6 +76,9 @@ var serveCommand = cli.Command{
 						server.Rerender()
 					case fsnotify.Create:
 						fmt.Printf("File %s created, rerendering...\n", evt.Name)
+						if isDirectory(evt.Name) {
+							watcher.Add(evt.Name)
+						}
 						server.Rerender()
 					case fsnotify.Remove:
 						fmt.Printf("File %s deleted, rerendering...\n", evt.Name)
@@ -82,4 +99,12 @@ var serveCommand = cli.Command{
 		}
 		return
 	},
+}
+
+func isDirectory(path string) bool {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return fileInfo.IsDir()
 }
